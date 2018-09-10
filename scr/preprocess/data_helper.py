@@ -224,3 +224,11 @@ def DetectElement(x,keywords):
 
 def DetectList(L,keywords):
     return any([x for x in L if DetectElement(x,keywords)])
+
+def FindStrSeries(df):
+    '''
+    return series names that contains str element
+    '''
+    temp=df.apply(lambda x:FindStrElement(x.tolist()),axis=0)
+    StrSeries=temp.index[temp].tolist()
+    return StrSeries
