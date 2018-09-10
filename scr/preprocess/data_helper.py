@@ -169,3 +169,58 @@ def remover(x,keyword):
         return [sentence for sentence in x if not any([word for word in sentence if word in keyword])]
     else:
         return x
+
+
+
+def bool2num(x):
+    if pd.isnull(x) or x == "" or x == " ":
+        return np.nan
+    if isinstance(x, str):
+        if re.search(r"未查|弃查|未检|不查", x): 
+            return np.nan
+        elif re.search(r"，", x):
+            return 1
+        elif re.search(r"未见|正常|无|不|未发现", x):
+            return 0
+        elif re.search(r'\d', x):
+            return float(re.findall(r"\d+", x)[0])
+        else:
+            return 1
+    else:
+        return x
+
+
+def str2num(x):
+    if pd.isnull(x) or x == '' or x == ' ':
+        return np.nan
+    if isinstance(x, str): 
+        x = x.replace(" ", "").replace(",", ".")
+        
+        if re.search(r"未查|弃查", x):
+            return np.nan
+        if re.search(r"、", x):
+            num = float(x.split("、")[1])
+            return num
+        if re.search(r"\d+", x):
+            num = float(re.findall(r"\d+\.?\d{,2}", x)[0])
+            return num
+    else:
+        return x
+
+
+def ExtractMean(x):
+    """
+    deal with string like "3-5" 
+    """
+    temp=list(re.match(r'(\d+)[-](\d+)',x).groups())
+    temp=[float(i) for i in temp]
+    return np.mean(temp)
+
+
+def DetectElement(x,keywords):
+    if not isinstance(x,str):
+        return False
+    return any([k for k in keywords if k in x])
+
+def DetectList(L,keywords):
+    return any([x for x in L if DetectElement(x,keywords)])
