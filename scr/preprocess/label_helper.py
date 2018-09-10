@@ -38,3 +38,4 @@ train.drop(index=train.index[pd.isnull(train['y3'])],inplace=True)
 train.drop(index=train.index[train['y5']<0],inplace=True)
 
 train = train.reset_index(drop=True)
+train.to_pickle(data_path+"\\train.pkl")

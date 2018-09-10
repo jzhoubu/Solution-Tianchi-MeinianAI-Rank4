@@ -1,6 +1,6 @@
 import pandas as pd
 import numpy as np
-import math,gc,pickle,numbers,sys,os
+import math,gc,pickle,numbers,sys,os,re
 sys.path.append(os.getcwd())
 from data_helper import *
 
@@ -8,24 +8,28 @@ current_path=os.getcwd()
 data_path="\\".join(current_path.split("\\")[:-2])+"\\data"
 
 # -------------------Load data-------------------
+print("########## Loading Data Part2 ##########")
 data2=load_data(data_path+"\\meinian_round1_data_part2_20180408.txt")
 data2.reset_index(inplace=True)
 data2=data2.rename(columns={"index":"vid"})
 
 # Reduce list to element
+print("########## Reduce List-like element ##########")
 data2=data2.applymap(list_reducer)
 
+
+
+
+# -------------------Multi Strategies Preprocessing-------------------
+# 这里是在notebook上，一边做EDA一边预处理，比较凌乱。
+print("########## Multi Strategies Preprocessing ##########")
 # 069017
+print("#### Processing  Feature 069017 ####")
 checktimes=[len(i) if isinstance(i,list) else 1 for i in data2['069017'].tolist()]
 data2['069017_checktimes']=checktimes
 #data2['069017_checktimes'].value_counts()
 normaltimes=[i.count('正常') if isinstance(i,list) else 1 if (i=='正常'or i=='未见') else 0 for i in data2['069017'].tolist()]
 data2['069017_normaltimes']=normaltimes
-#data2['069017_normaltimes'].value_counts()
-
-
-# -------------------Multi Strategies Preprocessing-------------------
-# 这里是在notebook上，一边做EDA一边预处理，比较凌乱。
 def func069017(x):
     if x=='正常'or x=='未见':
         return 0
@@ -40,10 +44,10 @@ data2['069017']=data2['069017'].apply(lambda x:func069017(x))
 data2['069017']=[x if isinstance(x,numbers.Number) else 1 for x in data2['069017'].tolist()]
 
 # 100010
+print("#### Processing  Feature 100010 ####")
 ind=data2['100010'].apply(lambda x:x==['-', '阴性'])
 if any(ind):
     data2.loc[ind,'100010']='-'
-
 def func100010(x):
     if pd.isnull(x) or x=="未见" or x=="未做" or x==" " or x=="":
         return 0
@@ -62,6 +66,7 @@ temp=data2['100010'].apply(lambda x:func100010(x))
 data2['100010']=temp
 
 # 2233
+print("#### Processing  Feature 2233 ####")
 index=data2.index[data2['2233'].apply(lambda x:isinstance(x,list))]
 data2.loc[index,'2233']='阴性'
 temp=data2['2233'].tolist()
@@ -100,6 +105,7 @@ temp=temp.apply(lambda x:func2233(x))
 data2['2233']=temp
 
 # 2282
+print("#### Processing  Feature 2282 ####")
 ind=data2.index[data2['2282'].apply(lambda x:isinstance(x,list) and any([e for e in x if e in ['阴性','-']]))]
 data2.loc[ind,'2282']='阴性'
 
@@ -108,6 +114,7 @@ temp=temp.replace({'阴性':-1,'阴性（-）':-1,'-':-1,'+':1,'阳性（+）':1
 data2['2282']=temp
 
 # 30001
+print("#### Processing  Feature 30001 ####")
 data2['30001']=data2['30001'].astype(str)
 AB_ind=data2['30001'][data2['30001'].str.contains("AB")].index
 A_ind=data2['30001'][data2['30001'].str.contains("A")].index.difference(AB_ind)
@@ -134,6 +141,7 @@ data2=data2.drop('30001',axis=1)
 
 
 # 300044
+print("#### Processing  Feature 300044 ####")
 data2['300044']=data2['300044'].apply(lambda x:'-' if isinstance(x,list) and any([e for e in x if any([p for p in ['-','阴'] if p in e])]) else x)
 
 NumTemp=data2['300044'].apply(lambda x:pd.to_numeric(x,errors='coerce'))
@@ -145,6 +153,7 @@ data2['300044_sign']=SignTemp
 data2=data2.drop(['300044'],axis=1)
 
 # 300073
+print("#### Processing  Feature 300073 ####")
 ind=data2.index[data2['300073'].apply(lambda x: isinstance(x,list))]
 data2.loc[ind,'300073']='0.84'
 temp=data2['300073']
@@ -155,6 +164,7 @@ temp=temp.replace({np.nan:avg}) # average replace nan
 data2['300073']=temp
 
 # 312
+print("#### Processing  Feature 312 ####")
 def func312(x):
     if not isinstance(x,list):
         return x
@@ -177,8 +187,8 @@ temp=temp.replace({np.nan:avg})
 data2['312']=temp
 
 # 3194
+print("#### Processing  Feature 3194 ####")
 data2['3194']=data2['3194'].apply(lambda x:'-' if isinstance(x,list) and any([e for e in x if any([p for p in ['-','阴'] if p in e])]) else x)
-
 temp=data2['3194'].replace({"-":-1,"阴性":-1,"+-":0.5,"+":1,"++":2,"+++":3,'阳性(+)':1,"未做":np.nan,'565':np.nan})
 #temp.value_counts(dropna=False)
 temp=pd.to_numeric(temp,errors='raise')
@@ -189,6 +199,7 @@ data2['3194']=temp
 
 
 # 3429
+print("#### Processing  Feature 3429 ####")
 temp=data2['3429'].apply(lambda x:x if not isinstance(x,list) else "未见" if "未见" in x else x[0])
 # temp.value_counts(dropna=False)
 
@@ -233,7 +244,9 @@ data2['3429']=temp3
 data2['3429_HPnum']=HPnum
 data2['3429_pos']=pos
 
+
 # 3485
+print("#### Processing  Feature 3485 ####")
 temp=data2['3485'].apply(lambda x:"阴性" if isinstance(x,list) and ("阴性" in x) else x)
 d={"未见":-1,"阴性":-1,"未检出":-1,"-":-1,"无":-1,"少见":-1,\
    "+":1,"检出":1,"查见":1,"阳性(+)":1,"见TCT":1,"检到":1,"+/HP":1,"阳性":1,"+-":0.5,"1+":1,\
@@ -246,12 +259,9 @@ temp=temp.replace({np.nan:avg})
 data2['3485']=temp
 
 # 3486
+print("#### Processing  Feature 3486 ####")
 data2['3486']=data2['3486'].apply(lambda x:'-' if isinstance(x,list) and any([e for e in x if any([p for p in ['-','阴'] if p in e])]) else x)
 data2['3486']=data2['3486'].apply(lambda x:'未见' if isinstance(x,list) and any([e for e in x if e=="未见"]) else x)
-
-#data2['3486'][data2['3486']==['阴性', '+']]='阴性'
-#data2['3486'][data2['3486']==['阴性', '-']]='阴性'
-
 d={"未见":-1,"阴性":-1,"未检出":-1,"-":-1,"无":-1,"少见":-1,\
    "+":1,"检出":1,"查见":1,"阳性(+)":1,"见TCT":1,"检到":1,"+/HP":1,"阳性":1,"+-":0.5,"1+":1,\
   "++":2,"2+":2,"+++":3,"结果见TCT":np.nan,"2-4":3,"见刮片":1,"酵母样细胞++":2,"1-3":2,"检出滴虫":1}
@@ -263,16 +273,20 @@ temp=temp.replace({np.nan:avg})
 data2['3486']=temp
 
 # I49002
+print("#### Processing  Feature I49002 ####")
 data2=data2.drop('I49002',axis=1)
 
 # 459271 , 21A014 , D59022 , 21A015 , K59033 ,279039，Rhneg
+print("#### Processing  Feature 459271 , 21A014 , D59022 , 21A015 , K59033 ,279039，Rhneg ####")
 data2.loc[:,['459271','21A014','D59022','21A015','K59033','279039']]=data2.loc[:,['459271','21A014','D59022','21A015','K59033','279039']].applymap(lambda x:0 if pd.isnull(x) else 1)
 data2=data2.drop('RHneg',axis=1)
 
 # 269041
+print("#### Processing  Feature 269041 ####")
 data2['269041']=data2['269041'].replace({"阴性":-1,"-":-1,"阳性(轻度)":1,"阳性(中度)":2,"阳性(重度)":3})
 
 # 2231
+print("#### Processing  Feature 2231 ####")
 temp=data2['2231'].apply(lambda x:np.nan if pd.isnull(x) else re.findall("\d+\.\d+",str(x)) if len(re.findall("\d+\.\d+",str(x))) else x)
 def f(x):
     if not isinstance(x,list):
@@ -296,6 +310,7 @@ temp=temp.replace({np.nan:avg_neg})
 data2['2231']=temp
 
 # 2230
+print("#### Processing  Feature 2230 ####")
 temp=data2['2230']
 def f2230(x):
     if not isinstance(x,str):
@@ -312,6 +327,7 @@ temp=temp.replace({np.nan:0})
 data2['2230']=temp
 
 # 2229
+print("#### Processing  Feature 2229 ####")
 temp=data2['2229'].apply(lambda x:np.nan if pd.isnull(x) else re.findall("\d+\.\d+",str(x)) if len(re.findall("\d+\.\d+",str(x))) else x)
 def f(x):
     if not isinstance(x,list):
@@ -340,6 +356,7 @@ temp=temp.replace({np.nan:avg_neg})
 data2['2229']=temp
 
 # 2228
+print("#### Processing  Feature 2228 ####")
 temp=data2['2228'].apply(lambda x:np.nan if pd.isnull(x) else re.findall("\d+\.\d+",str(x)) if len(re.findall("\d+\.\d+",str(x))) else x)
 def f(x):
     if not isinstance(x,list):
@@ -370,8 +387,8 @@ data2['2228']=pd.to_numeric(temp,errors='raise')
 data2=data2.apply(lambda x:pd.to_numeric(x,errors='ignore'),axis=0)
 
 # 30007
+print("#### Processing  Feature 30007 ####")
 d={"未见异常":0,"正常":0,"-":0,"阴性":0,"见TCT":0,"见刮片":0,"结果见TCT":0,"微混":0,"结果0":0,"+":2,"yellow":2,"中度":2}
-
 def fun30007_1(x):
     if not isinstance(x,str):
         return x
@@ -392,6 +409,7 @@ data2['30007']=pd.to_numeric(data2['30007'])
 data2.drop(columns=['21A059','019019','K59034','319194','459166','569001'],inplace=True)
 
 # 3783
+print("#### Processing  Feature 3783 ####")
 def func3783(x):
     if not isinstance(x,str):
         return x
@@ -399,6 +417,7 @@ def func3783(x):
 data2['3783']=data2['3783'].apply(lambda x:func3783(x))
 
 # 3740 粪便
+print("#### Processing  Feature 3740 ####")
 def func3740(x):
     if not isinstance(x,str):
         return x
@@ -406,12 +425,15 @@ def func3740(x):
 data2['3740']=data2['3740'].apply(lambda x:func3740(x))
 
 # J29004
+print("#### Processing  Feature J29004 ####")
 data2['J29004']=data2['J29004'].apply(lambda x:1 if x=="淡黄色" else 2 if x=="淡红色" else 0)
 
 # 2245
+print("#### Processing  Feature 2245 ####")
 data2['2245']=data2['2245'].apply(lambda x:x if not isinstance(x,str) else -1 if "-" in x or "阴" in x else x)
 
 # 769005
+print("#### Processing  Feature 769005 ####")
 data2['769005']=data2['769005'].replace(0.0,"O").apply(lambda x:x if not isinstance(x,str) else "AB" if "AB" in x else "A" if "A" in x else "B" if "B" in x else "O" if "O" in x or "0" in x else x)
 AB_ind=data2['769005'][data2['769005'].str.contains('AB')==True].index
 A_ind=data2['769005'][data2['769005'].str.contains("A")==True].index.difference(AB_ind)
@@ -424,9 +446,11 @@ data2.loc[O_ind,'O']=1
 data2['769005']=data2['769005'].apply(lambda x:0 if pd.isnull(x) else 1)
 
 # 2284 HIV
+print("#### Processing  Feature 2284 ####")
 data2['2284']=data2['2284'].apply(lambda x:0 if pd.isnull(x) else 1)
 
 # 319103
+print("#### Processing  Feature 319103 ####")
 data2['319103']=data2['319103'].replace({0.0:"O"}).apply(lambda x:x if not isinstance(x,str) else x.upper())
 data2['319103']=data2['319103'].apply(lambda x:x if not isinstance(x,str) else "AB" if "AB" in x else "A" if "A" in x else "B" if "B" in x else "O" if "O" in x or "0" in x else x)
 AB_ind=data2['319103'][data2['319103'].str.contains('AB')==True].index
@@ -440,6 +464,7 @@ data2.loc[O_ind,'O']=1
 data2['319103']=data2['319103'].apply(lambda x:0 if pd.isnull(x) else 1)
 
 # 809070
+print("#### Processing  Feature 809070 ####")
 data2['809070']=data2['809070'].replace({0.0:"O"}).apply(lambda x:x if not isinstance(x,str) else x.upper())
 data2['809070']=data2['809070'].apply(lambda x:x if not isinstance(x,str) else "AB" if "AB" in x else "A" if "A" in x else "B" if "B" in x else "O" if "O" in x or "0" in x else x)
 AB_ind=data2['809070'][data2['809070'].str.contains('AB')==True].index
@@ -453,15 +478,20 @@ data2.loc[O_ind,'O']=1
 data2['809070']=data2['809070'].apply(lambda x:0 if pd.isnull(x) else 1)
 
 # 3400
+print("#### Processing  Feature 3400 ####")
 data2['3400']=data2['3400'].apply(lambda x:0 if x=='透明' else 1 if x in ['微浑','微混','混浊','浑浊'] else 2)
 
 # 3203
+print("#### Processing  Feature 3203 ####")
 data2['3203']=data2['3203'].replace({"少量":2,"大量":20})
 
+# 769006
+print("#### Processing  Feature 769006 ####")
 data2.drop(columns=['769006'],inplace=True)
 
 
 # -------------------处理科学计数法的数据-------------------
+print("########## Transforming Science Notation ##########")
 temp=data2.apply(lambda s:any([x for x in s.tolist() if DetectSciNotation(x)==True]))
 data2.loc[:,temp.index[temp]]=data2.loc[:,temp.index[temp]].applymap(lambda x:SciNotation(x))
 
@@ -469,10 +499,12 @@ data2=data2.apply(lambda x:pd.to_numeric(x,errors='ignore'),axis=0)
 
 
 # -------------------剩余批量处理-------------------
+print("########## Transforming Other Data Type ##########")
 data2.iloc[:,1:]=data2.iloc[:,1:].applymap(lambda x:Fix(x))
 data2.iloc[:,1:]=data2.iloc[:,1:].applymap(try_average)
 
 # -------------------离群点处理-------------------
+print("########## Removing out-lier ##########")
 data2['2278'] = data2['2278'].apply(lambda x: x if x < 10 else np.nan)
 for s in ['10004', '10009', '10013', '10014', '1110', '1171', '1337', '1363', '1451', '155', '164', '179120', '1815', '1873', '192', '193', '20002', '2163', 
           '2176', '2177', '21A017', '2228', '2247', '2250', '2277', '2333', '2371', '2372', '2376', '2386', '2387', '2389', '279034', '300005', '300011', 
@@ -487,5 +519,5 @@ for s in ['10004', '10009', '10013', '10014', '1110', '1171', '1337', '1363', '1
     mean = data2[s].mean()
     data2[s] = data2[s].apply(lambda x: x if x < mean + 10 * std and x > mean - 10 * std else np.nan)
 
-
+print("##########  Storing Data ##########")
 data2.to_pickle(data_path+"\\data_part2.pkl")
