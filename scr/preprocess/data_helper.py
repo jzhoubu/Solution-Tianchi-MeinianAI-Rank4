@@ -125,3 +125,47 @@ def try_average(x):
         elif len(ans)==2:
             return np.mean([float(x) for x in ans])
     return x
+
+
+#-----------------------Part1------------------------
+def list_reduce_part1(x):
+    '''
+    Fix None-Element like [""] in list
+    Fix Dumplicate-Element like ["健康","健康"] in list
+    '''
+    if not isinstance(x,list):
+        return x
+    x=[re.sub(" ","",x) for e in x if e not in [""," ",math.nan]] #删除空格
+    if len(set(x))==0:
+        return math.nan
+    elif len(set(x))==1:
+        return x[0]
+    else:
+        return x
+
+
+def detecter(x,keyword):
+    """
+    element-wise detect on element or list
+    """
+    if isinstance(x,str):
+        if any([word for word in keyword if word in x]):
+            return x
+        return 0
+    elif isinstance(x,list):
+        return [sentence for sentence in x if any([word for word in sentence if word in keyword])]
+    else:
+        return x
+    
+def remover(x,keyword):
+    """
+    element-wise
+    """
+    if isinstance(x,str):
+        if not any([word for word in keyword if word in x]):
+            return x
+        return math.nan
+    elif isinstance(x,list):
+        return [sentence for sentence in x if not any([word for word in sentence if word in keyword])]
+    else:
+        return x
