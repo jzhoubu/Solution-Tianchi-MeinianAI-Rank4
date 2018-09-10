@@ -5,10 +5,10 @@ sys.path.append(os.getcwd())
 from data_helper import *
 
 current_path=os.getcwd()
-data_path="\\".join(current_path.split("\\")[:-2])+"\\data\\meinian_round1_data_part2_20180408.txt"
+data_path="\\".join(current_path.split("\\")[:-2])+"\\data"
 
 # -------------------Load data-------------------
-data2=load_data(data_path)
+data2=load_data(data_path+"\\meinian_round1_data_part2_20180408.txt")
 data2.reset_index(inplace=True)
 data2=data2.rename(columns={"index":"vid"})
 
@@ -486,3 +486,6 @@ for s in ['10004', '10009', '10013', '10014', '1110', '1171', '1337', '1363', '1
     std = data2[s].std()
     mean = data2[s].mean()
     data2[s] = data2[s].apply(lambda x: x if x < mean + 10 * std and x > mean - 10 * std else np.nan)
+
+
+data2.to_pickle(data_path+"\\data_part2.pkl")
