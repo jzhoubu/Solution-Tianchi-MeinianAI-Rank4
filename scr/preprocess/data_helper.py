@@ -1,4 +1,4 @@
-import pandas as pd, numpy as np
+import pandas as pd, numpy as np,re
 
 def load_data(path):
     data_dict = {}
@@ -35,7 +35,6 @@ def list_reducer(x):
             return x
         else:
             return np.mean(list(map(float,x)))
-
 
 
 def detect_sci_notation(x):
@@ -216,14 +215,11 @@ def ExtractMean(x):
     temp=[float(i) for i in temp]
     return np.mean(temp)
 
+def FindStrElement(L):
+    return any([i for i in L if isinstance(i,str)])
 
-def DetectElement(x,keywords):
-    if not isinstance(x,str):
-        return False
-    return any([k for k in keywords if k in x])
-
-def DetectList(L,keywords):
-    return any([x for x in L if DetectElement(x,keywords)])
+def FindListElement(L):
+    return any([i for i in L if isinstance(i,list)])
 
 def FindStrSeries(df):
     '''
@@ -232,3 +228,43 @@ def FindStrSeries(df):
     temp=df.apply(lambda x:FindStrElement(x.tolist()),axis=0)
     StrSeries=temp.index[temp].tolist()
     return StrSeries
+
+def FindListSeries(df):
+    '''
+    return series names that contains str element
+    '''
+    temp=df.apply(lambda x:FindListElement(x.tolist()),axis=0)
+    ListSeries=temp.index[temp].tolist()
+    return ListSeries
+
+
+def FindAllStrSeries(df):
+    '''
+    Find series that only contain str and nan
+    '''
+    AllStrSeries=df.apply(lambda x:all(pd.isnull(pd.to_numeric(x,errors="coerce").tolist())),axis=0)
+    return AllStrSeries[AllStrSeries].index.tolist()
+
+
+def FindAllStr(df):
+    '''
+    Find all the str elements inside a df
+    '''
+    L=df.where(df.applymap(type).eq(str)).stack().tolist()
+    try:
+        L=np.unique(L).tolist()
+    except:
+        print("fail to use np.unique, may contain list")
+    return L
+
+
+def FindAllList(df):
+    '''
+    Find all the str elements inside a df
+    '''
+    L=df.where(df.applymap(type).eq(list)).stack().tolist()
+    try:
+        L=np.unique(L).tolist()
+    except:
+        print("fail to use np.unique, may contain list")
+    return L

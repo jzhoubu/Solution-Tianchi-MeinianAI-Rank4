@@ -1,6 +1,7 @@
 import pandas as pd
 import numpy as np
-import math,gc,pickle,numbers,sys,os,re
+import math,gc,pickle,numbers,sys,os,re,warnings
+warnings.filterwarnings("ignore")
 sys.path.append(os.getcwd())
 from data_helper import *
 
@@ -492,8 +493,8 @@ data2.drop(columns=['769006'],inplace=True)
 
 # -------------------处理科学计数法的数据-------------------
 print("########## Transforming Science Notation ##########")
-temp=data2.apply(lambda s:any([x for x in s.tolist() if DetectSciNotation(x)==True]))
-data2.loc[:,temp.index[temp]]=data2.loc[:,temp.index[temp]].applymap(lambda x:SciNotation(x))
+temp=data2.apply(lambda s:any([x for x in s.tolist() if detect_sci_notation(x)==True]))
+data2.loc[:,temp.index[temp]]=data2.loc[:,temp.index[temp]].applymap(lambda x:translate_sci_notation(x))
 
 data2=data2.apply(lambda x:pd.to_numeric(x,errors='ignore'),axis=0)
 
@@ -503,6 +504,9 @@ print("########## Transforming Other Data Type ##########")
 data2.iloc[:,1:]=data2.iloc[:,1:].applymap(lambda x:Fix(x))
 data2.iloc[:,1:]=data2.iloc[:,1:].applymap(try_average)
 
+SS=FindStrSeries(data2.iloc[:,1:])
+data2.loc[:,SS]=data2.loc[:,SS].applymap(lambda x:0 if isinstance(x,str) else x)
+data2.loc[:,SS]=data2.loc[:,SS].applymap(lambda x:pd.to_numeric(x,errors='raise'))
 # -------------------离群点处理-------------------
 print("########## Removing out-lier ##########")
 data2['2278'] = data2['2278'].apply(lambda x: x if x < 10 else np.nan)
