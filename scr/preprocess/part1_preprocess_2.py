@@ -8,7 +8,7 @@ current_path=os.getcwd()
 data_path="\\".join(current_path.split("\\")[:-2])+"\\data"
 
 
-data1=pickle.load(open(data_path+"\\data_part1_temp1","rb"))
+data1=pickle.load(open(data_path+"\\data_part1_temp1.pkl","rb"))
 
 
 # -----------批量处理一些能转化为哑变量的字段-----------

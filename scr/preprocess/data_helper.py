@@ -1,4 +1,4 @@
-import pandas as pd, numpy as np,re
+import pandas as pd, numpy as np,re,math
 
 def load_data(path):
     data_dict = {}
@@ -127,16 +127,16 @@ def try_average(x):
 
 
 #-----------------------Part1------------------------
-def list_reduce_part1(x):
+def ListReduce1(x):
     '''
     Fix None-Element like [""] in list
     Fix Dumplicate-Element like ["健康","健康"] in list
     '''
     if not isinstance(x,list):
         return x
-    x=[re.sub(" ","",x) for e in x if e not in [""," ",math.nan]] #删除空格
+    x=[re.sub(" ","", e) for e in x if e not in [""," ",math.nan]] #删除空格
     if len(set(x))==0:
-        return math.nan
+        return np.nan
     elif len(set(x))==1:
         return x[0]
     else:
