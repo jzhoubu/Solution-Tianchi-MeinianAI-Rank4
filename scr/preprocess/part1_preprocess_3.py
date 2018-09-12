@@ -1,14 +1,17 @@
 import pandas as pd
 import numpy as np
-import math,gc,pickle,numbers,sys,os
+import math,gc,pickle,numbers,sys,os,warnings
+warnings.filterwarnings("ignore")
 sys.path.append(os.getcwd())
 from data_helper import *
+
+
 
 current_path=os.getcwd()
 data_path="\\".join(current_path.split("\\")[:-2])+"\\data"
 
 # load data
-data1=pickle.load(open(data_path+"\\data_part1_temp2","rb"))
+data1=pickle.load(open(data_path+"\\data_part1_temp2.pkl","rb"))
 
 # 遍历所有体检项目建立词袋，构造用户画像
 sexlist = ['阴道', '乳腺', '子宫', '乳房', '宫颈', '宫内', '宮壁', '外阴']

@@ -268,3 +268,12 @@ def FindAllList(df):
     except:
         print("fail to use np.unique, may contain list")
     return L
+
+
+def DetectList(L,keywords):
+    return any([x for x in L if DetectElement(x,keywords)])
+
+def DetectElement(x,keywords):
+    if not isinstance(x,str):
+        return False
+    return any([k for k in keywords if k in x])
