@@ -1,0 +1,8 @@
+# 空字符串
+BLANK_WORD = '<BLANK/>'
+PAD_WORD = '<PAD/>'
+
+# 空浮点型
+BLANK_FLOAT = 0.0
+
+PADDING_WORDS = [ BLANK_WORD, PAD_WORD ]
