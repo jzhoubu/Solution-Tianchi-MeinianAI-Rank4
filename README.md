@@ -5,6 +5,8 @@
 
 复赛：A榜Rank Top5/150，B榜Rank 4/150
 
+团队成员：sysu-zjw，[Star Wave](https://github.com/mathcbc)，[deathcrow](https://github.com/deathcrow) ，mzs
+
 > 第一次参加比赛，和小伙伴一起边走边学，其实学到的东西很多。\
 从成绩来看其实我们的模型是很稳定的，用的是GBDT单模型，另外用了CNN做文本特征的特征工程处理。
 
